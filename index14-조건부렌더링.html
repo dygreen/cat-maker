@@ -30,7 +30,26 @@
     <script src="https://unpkg.com/react@17/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js" crossorigin></script>
     <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+
     <script type="text/babel">
+
+      const jsonLocalStorage = {
+        setItem: (key, value) => {
+          localStorage.setItem(key, JSON.stringify(value));
+        },
+        getItem: (key) => {
+          return JSON.parse(localStorage.getItem(key));
+        },
+      };
+
+
+      const fetchCat = async (text) => {
+        const OPEN_API_DOMAIN = "https://cataas.com";
+        const response = await fetch(`${OPEN_API_DOMAIN}/cat/says/${text}?json=true`);
+        const responseJson = await response.json();
+        return `${OPEN_API_DOMAIN}/${responseJson.url}`;
+      };
+
 
       const Title = (props) => {
         return(
@@ -64,7 +83,7 @@
             return;
           }
 
-          updateMainCat();
+          updateMainCat(value);
         }
 
         return(
@@ -86,13 +105,18 @@
       function CatItem(props){
         return(
           <li>
-            <img src={props.img} style={{width: "150px"}}/>
+            <img src={props.img} style={{height: "150px"}}/>
           </li>
         );
       }
 
 
+      // 수정(1)
       function Favorites({favorites}){
+        if(favorites.length === 0){
+          return <div>사진 위 하트를 눌러 고양이 사진을 저장해보세요!</div>
+        }
+
         return (
           <ul className="favorites">
             {favorites.map(cat => <CatItem img={cat} key={cat} />)}
@@ -101,7 +125,10 @@
       }
 
 
-      const MainCard = ({img, onHeartClick}) => {
+      // 수정(2-3)
+      const MainCard = ({img, onHeartClick, alreadyFavorite}) => {
+        const heartIcon = alreadyFavorite ? "💖" : "🤍";
+
         return (
           <div className="main-card">
             <img
@@ -109,7 +136,7 @@
               alt="고양이"
               width="400"
             />
-            <button onClick={onHeartClick}>🤍</button>
+            <button onClick={onHeartClick}>{heartIcon}</button>
           </div>
         );
       };
@@ -120,30 +147,53 @@
         const CAT2 = "https://cataas.com//cat/5e9970351b7a400011744233/says/inflearn";
         const CAT3 = "https://cataas.com/cat/595f280b557291a9750ebf65/says/JavaScript";
 
-        const [counter, setCounter] = React.useState(1);
+        const [counter, setCounter] = React.useState(
+          jsonLocalStorage.getItem("counter")
+        );
         const [mainCat, setMainCat] = React.useState(CAT1);
-        const [favorites,setFavorites] = React.useState([CAT1, CAT2]);
 
-        /* function handleFormSubmit(event){
-          event.preventDefault();
-          setCounter(counter + 1);
-          setMainCat(CAT2);
-        }; */
+        const [favorites,setFavorites] = React.useState(
+          jsonLocalStorage.getItem("favorites") || []
+        );
 
-        function updateMainCat(){
-          setMainCat(CAT2);
-          setCounter(counter + 1);
+
+        // 수정(2-1)
+        const alreadyFavorite = favorites.includes(mainCat);
+
+        async function setInitialCat(){
+          const newCat = await fetchCat("First cat");
+          setMainCat(newCat);
+        };
+
+        React.useEffect(() => {
+          setInitialCat();
+        },[]);
+
+
+        async function updateMainCat(value){
+          const newCat = await fetchCat(value); 
+
+          setMainCat(newCat);
+          const nextCounter = counter + 1;
+          setCounter(nextCounter);
+          jsonLocalStorage.setItem("counter", nextCounter);
         }
 
         function handleHeartClick(){
-          setFavorites([...favorites, CAT3]);
+          const nextFavorites = [...favorites, mainCat];
+          setFavorites(nextFavorites);
+          jsonLocalStorage.setItem("favorites", nextFavorites);
         }
 
+        // 수정(3) 
+        const counterTitle = counter === null ? "" : counter + "번째";
+
+        // 수정(2-2) -> <MainCard/>
         return (
           <div>
-            <Title>{counter}번째 고양이 가라사대</Title>
+            <Title>{counterTitle}고양이 가라사대</Title>
             <Form updateMainCat={updateMainCat} />
-            <MainCard img={mainCat} onHeartClick={handleHeartClick} />
+            <MainCard img={mainCat} onHeartClick={handleHeartClick} alreadyFavorite={alreadyFavorite}/>
             <Favorites favorites={favorites} />
           </div>
         );
@@ -159,28 +209,14 @@
 </html>
 
 <!-- 
-  >>> 중간 코드 정리하기
-  (1) console 모두 삭제
-  
-  
-  (2) 리액트에서 이벤트 핸들러 함수 이름을 지을 때 사용하는 컨벤션(convention): 규칙, 약속
-  이벤트 핸들러 함수 이름을 지을때는 handle이라고 시작을 하고, 그 함수를 만약에 프롭으로 넘긴다고 했을 때 on이라는 접두어를 붙인다. 실제로 내가 코딩한 함수의 이름은 handle로 지어도 이걸 프롭으로 넘길 때는 on이라고 한다.
+  >>> 조건부 렌더링(Conditional Rendering): 어떤 조건일 때 원하는 걸 보여준다
+  애플리케이션탭에서 favorite 목록을 클릭해서 삭제한 후 메시지 뜨는지 확인!
 
-  <MainCard img={mainCat} handleHeartClick={handleHeartClick} />
-  <MainCard img={mainCat} onHeartClick={handleHeartClick} /> ▶ 변경
+  (1) 즐겨찾기를 누른 고양이가 하나도 없을 때는 메시지 띄우기
+  -> "사진 위 하트를 눌러 고양이 사진을 저장해보세요!"
 
-  const MainCard = ({img, handleHeartClick}) => {
-  const MainCard = ({img, onHeartClick}) => { ▶ 변경 onHeartClick으로 넘겨줌
+  (2) 하트를 눌렀을 때 하트를 누른 상태면 빨간하트, 아니면 하얀 하트
 
-  <button onClick={handleHeartClick}>🤍</button>
-  <button onClick={onHeartClick}>🤍</button> ▶ 변경
-
-
-  (3) 부모 컴포넌트(App)에서 handleFormSubmit이라는 함수를 부모에서 내려서 보내주고 있는데 
-  <Form handleFormSubmit={handleFormSubmit} />
-  const Form = () => { 여기서는 사용하고 있지 않고 직접 handleFormSubmit을 구현하고 있다.
-  -> 부모 컴포넌트의 handleFormSubmit을 수정한다. -> updateMainCat 함수를 새로 만들었음
-
-  const Form = ({updateMainCat}) => { ▶ 변경
-
+  (3) 맨 위 제목에 카운터가 없으면 번째가 나오지 않게 하기
+  -> counter가 null이면 'n번째'를 삭제하고 "고양이 가라사대"만 보여주기
  -->
