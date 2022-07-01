@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/cat-maker/static/css/main.1215177c.css",
+    "main.js": "/cat-maker/static/js/main.92a93689.js",
+    "index.html": "/cat-maker/index.html",
+    "main.1215177c.css.map": "/cat-maker/static/css/main.1215177c.css.map",
+    "main.92a93689.js.map": "/cat-maker/static/js/main.92a93689.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.1215177c.css",
+    "static/js/main.92a93689.js"
+  ]
+}
