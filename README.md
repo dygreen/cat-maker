@@ -1,12 +1,12 @@
-# cat-maker
-[React] 고양이 짤방 만들기
+# Cat-maker
+: React와 API를 활용하여 고양이 짤방 제작
 > [기간: 2022.06.28 ~ 2022.07.01]
 >
 > 주소: https://dygreen.github.io/cat-maker/index.html
 
 ***
 ## Service Info
-* 고양이 사진 Open API를 가져와 보여줌
+* [고양이 사진 API](https://cataas.com/#/)를 가져와 보여줌
 * 영어 대사 입력시 소문자 -> 대문자로 바꿔줌
 * 대사를 입력하고 생성 버튼을 누르면 랜덤 고양이 사진에 해당 대사가 입혀짐
 * 한글, 빈칸 검사 및 알림 기능
@@ -42,4 +42,4 @@ const jsonLocalStorage = {
 * `findIndex()`를 활용해 중복된 데이터를 검사 + 중복 알림 + 추가 안 됨
 
 ***
-#### _* 자세한 실행과정 정리(노션: https://prickle-turn-785.notion.site/Cat-maker-ab5b9530bf6141b986411458929aa0b4)_
+#### _* 자세한 실행과정 정리(노션: https://prickle-turn-785.notion.site/Cat-maker-1aa90e8fba264463a758356917481312)_
